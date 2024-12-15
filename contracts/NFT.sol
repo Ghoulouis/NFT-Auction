@@ -1,45 +1,75 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721URIStorageUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 
-contract NFTContract is ERC721, Ownable {
-    uint256 public tokenCounter;
-    mapping(uint256 => string) private _tokenURIs;
+contract NFT is ERC721URIStorageUpgradeable, AccessControlUpgradeable {
+    uint256 private _tokenIdCounter;
 
-    constructor(
-        string memory _name,
-        string memory _symbol,
-        address _creator
-    ) ERC721(_name, _symbol) Ownable(_creator) {
-        transferOwnership(_creator);
-        tokenCounter = 0;
+    bytes32 public constant MINTER_ROLE = keccak256("MINTER");
+
+    event NFTMinted(
+        address indexed to,
+        uint256 indexed tokenId,
+        string tokenURI
+    );
+
+    function initialize() public initializer {
+        __ERC721URIStorage_init();
+        __AccessControl_init();
+        _tokenIdCounter = 0;
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(MINTER_ROLE, msg.sender);
     }
 
-    function mintNFT(
-        address _to,
-        string memory _tokenURI
-    ) public onlyOwner returns (uint256) {
-        uint256 newTokenId = tokenCounter;
-        _safeMint(_to, newTokenId);
-        _setTokenURI(newTokenId, _tokenURI);
-        tokenCounter++;
-        return newTokenId;
+    /**
+     * @dev Mint a new NFT with a specific tokenURI.
+     * @param to The address that will own the minted NFT.
+     * @param tokenURI The metadata URI associated with the NFT.
+     */
+    function mint(
+        address to,
+        string memory tokenURI
+    ) external onlyRole(MINTER_ROLE) {
+        uint256 tokenId = _tokenIdCounter;
+        _tokenIdCounter++;
+        _mint(to, tokenId);
+        _setTokenURI(tokenId, tokenURI);
+        emit NFTMinted(to, tokenId, tokenURI);
     }
 
-    function _setTokenURI(
-        uint256 _tokenId,
-        string memory _tokenURI
-    ) internal virtual {
-        require(_exists(_tokenId), "ERROR: 01");
-        _tokenURIs[_tokenId] = _tokenURI;
+    /**
+     * @dev Override the transfer function to allow custom logic if needed.
+     * @param from The current owner of the NFT.
+     * @param to The new owner of the NFT.
+     * @param tokenId The ID of the NFT being transferred.
+     */
+    function transferOwnership(
+        address from,
+        address to,
+        uint256 tokenId
+    ) external {
+        require(ownerOf(tokenId) == from, "Caller is not the owner");
+        _transfer(from, to, tokenId);
     }
 
-    function tokenURI(
-        uint256 _tokenId
-    ) public view virtual override returns (string memory) {
-        require(_exists(_tokenId), "ERROR: 02");
-        return _tokenURIs[_tokenId];
+    /**
+     * @dev Get the current counter value (useful for debugging or frontend integration).
+     */
+    function getTokenIdCounter() external view returns (uint256) {
+        return _tokenIdCounter;
+    }
+
+    function supportsInterface(
+        bytes4 interfaceId
+    )
+        public
+        view
+        virtual
+        override(ERC721URIStorageUpgradeable, AccessControlUpgradeable)
+        returns (bool)
+    {
+        return super.supportsInterface(interfaceId);
     }
 }

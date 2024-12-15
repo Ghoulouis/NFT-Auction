@@ -1,6 +1,18 @@
 {
   "name": "hardhat-project",
   "dependencies": {
-    "@openzeppelin/contracts": "^5.1.0"
+    "@nomicfoundation/hardhat-ethers": "^3.0.8",
+    "@openzeppelin/contracts": "^5.1.0",
+    "@openzeppelin/contracts-upgradeable": "^5.1.0",
+    "@typechain/hardhat": "^9.1.0",
+    "@types/node": "^22.10.2",
+    "dotenv": "^16.4.7",
+    "ethers": "^6.13.4",
+    "hardhat": "^2.22.17",
+    "hardhat-deploy": "^0.14.0"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.2"
   }
 }
