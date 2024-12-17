@@ -2,6 +2,8 @@ import { HardhatUserConfig } from "hardhat/config";
 import "hardhat-deploy";
 import "@typechain/hardhat";
 import "@nomicfoundation/hardhat-ethers";
+import "@nomicfoundation/hardhat-chai-matchers";
+import "@nomicfoundation/hardhat-network-helpers";
 import dotenv from "dotenv";
 import "@typechain/hardhat";
 dotenv.config();
@@ -48,12 +50,11 @@ const config: HardhatUserConfig = {
             accounts: TEST_HDWALLET,
             tags: ["hardhat"],
         },
-        sapphire_testnet: {
-            url: "https://testnet.sapphire.oasis.dev",
-            chainId: 0x5aff,
-            accounts,
-            live: true,
-            tags: ["sapphire-testnet"],
+        eth_tenderly: {
+            url: process.env.RPC_ETH_TENDERLY!,
+            chainId: 1,
+            accounts: accounts,
+            tags: ["staging"],
         },
     },
 };

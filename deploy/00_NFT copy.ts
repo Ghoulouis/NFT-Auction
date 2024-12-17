@@ -6,8 +6,8 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const { deploy, diamond, read, execute } = deployments;
     const { deployer, deployer2 } = await getNamedAccounts();
 
-    await deploy("NFT", {
-        contract: "NFT",
+    await deploy("ShopNFT", {
+        contract: "ShopNFT",
         from: deployer,
         log: true,
         proxy: {
@@ -15,7 +15,7 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
             execute: {
                 init: {
                     methodName: "initialize",
-                    args: [],
+                    args: [deployer],
                 },
             },
         },
