@@ -38,10 +38,10 @@ contract ShopNFT is Initializable, AccessControlUpgradeable {
         uint256 price
     );
 
-    function initialize(address admin) public initializer {
+    function initialize() public initializer {
         __AccessControl_init();
-        _grantRole(DEFAULT_ADMIN_ROLE, admin);
-        _grantRole(ADMIN_ROLE, admin);
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(ADMIN_ROLE, msg.sender);
         listingCounter = 0;
     }
 
@@ -52,31 +52,29 @@ contract ShopNFT is Initializable, AccessControlUpgradeable {
         address paymentToken,
         uint256 price
     ) external onlyRole(ADMIN_ROLE) {
-        require(price > 0, "Price must be greater than zero");
-        // Transfer NFT từ ADMIN sang contract
-        ERC721Upgradeable(nftContract).transferFrom(
-            msg.sender,
-            address(this),
-            tokenId
-        );
-
-        // Tạo listing mới
-        listings[listingCounter] = Listing({
-            nftContract: nftContract,
-            tokenId: tokenId,
-            paymentToken: paymentToken,
-            price: price,
-            active: true
-        });
-
-        emit NFTListed(
-            listingCounter,
-            nftContract,
-            tokenId,
-            paymentToken,
-            price
-        );
-        listingCounter++;
+        // require(price > 0, "Price must be greater than zero");
+        // // Transfer NFT từ ADMIN sang contract
+        // ERC721Upgradeable(nftContract).transferFrom(
+        //     msg.sender,
+        //     address(this),
+        //     tokenId
+        // );
+        // // Tạo listing mới
+        // listings[listingCounter] = Listing({
+        //     nftContract: nftContract,
+        //     tokenId: tokenId,
+        //     paymentToken: paymentToken,
+        //     price: price,
+        //     active: true
+        // });
+        // emit NFTListed(
+        //     listingCounter,
+        //     nftContract,
+        //     tokenId,
+        //     paymentToken,
+        //     price
+        // );
+        // listingCounter++;
     }
 
     /// @dev Hàm mua NFT, bất kỳ ai cũng gọi được

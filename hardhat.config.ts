@@ -30,7 +30,13 @@ const config: HardhatUserConfig = {
             {
                 version: "0.8.24",
                 settings: {
-                    optimizer: { enabled: true, runs: 800 },
+                    optimizer: {
+                        enabled: true,
+                        runs: 200,
+                        details: {
+                            yul: false,
+                        },
+                    },
                     viaIR: true,
                     metadata: {
                         bytecodeHash: "none",
@@ -49,12 +55,21 @@ const config: HardhatUserConfig = {
             chainId: 31337,
             accounts: TEST_HDWALLET,
             tags: ["hardhat"],
+            deploy: ["deploy/hardhat"],
         },
         eth_tenderly: {
             url: process.env.RPC_ETH_TENDERLY!,
             chainId: 1,
             accounts: accounts,
             tags: ["staging"],
+        },
+        sapphire_testnet: {
+            url: "https://testnet.sapphire.oasis.dev",
+            chainId: 0x5aff,
+            accounts,
+            live: true,
+            deploy: ["deploy/sapphire_testnet"],
+            tags: ["sapphire_testnet"],
         },
     },
 };

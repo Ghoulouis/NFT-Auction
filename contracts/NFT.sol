@@ -31,8 +31,8 @@ contract NFT is ERC721URIStorageUpgradeable, AccessControlUpgradeable {
     function mint(
         address to,
         string memory tokenURI
-    ) external onlyRole(MINTER_ROLE) {
-        uint256 tokenId = _tokenIdCounter;
+    ) external onlyRole(MINTER_ROLE) returns (uint256 tokenId) {
+        tokenId = _tokenIdCounter;
         _tokenIdCounter++;
         _mint(to, tokenId);
         _setTokenURI(tokenId, tokenURI);

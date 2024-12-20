@@ -1,9 +1,10 @@
+import { NFT } from "./../typechain-types/contracts/NFT";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import { expect } from "chai";
-import { NFT, ShopNFT } from "../typechain-types";
+import { NFT, NFT__factory, NFTAdmin, NFTAdmin__factory, ShopNFT, ShopNFT__factory } from "../typechain-types";
 import { takeSnapshot } from "@nomicfoundation/hardhat-network-helpers";
 import hre, { ethers } from "hardhat";
-import { ZeroAddress } from "ethers";
+import { parseUnits, ZeroAddress } from "ethers";
 
 describe("Testing", () => {
     const { deployments, getNamedAccounts, getChainId } = hre;
@@ -15,9 +16,11 @@ describe("Testing", () => {
 
     let nft: NFT;
     let shop: ShopNFT;
+    let admin: NFTAdmin;
+
     let snapshot: any;
 
-    let tokenURI = "https://token.com";
+    let tokenURI = "https://gateway.pinata.cloud/ipfs/bafybeieirpi3ve5gy775llytqh2vdeqhh5sdkvzpm6zmlcu6fvhdzqa7j4";
 
     let usdt = ZeroAddress;
 
@@ -31,29 +34,48 @@ describe("Testing", () => {
         deployer = await hre.ethers.provider.getSigner(0);
         alice = await hre.ethers.provider.getSigner(2);
         [deployer, bob, alice] = await ethers.getSigners();
+
+        const nftDeployment = await get("NFT");
+        nft = NFT__factory.connect(nftDeployment.address, deployer);
+
+        const shopDeployment = await get("ShopNFT");
+        shop = ShopNFT__factory.connect(shopDeployment.address, deployer);
+
+        const adminDeployment = await get("NFTAdmin");
+        admin = NFTAdmin__factory.connect(adminDeployment.address, deployer);
     });
 
-    describe("test SHOP", () => {
-        beforeEach(async () => {
-            await execute("NFT", { from: deployer.address, log: true }, "mint", deployer.address, tokenURI);
-        });
-
-        it("list a NFT", async () => {
-            await execute("NFT", { from: deployer.address, log: true }, "approve", (await get("ShopNFT")).address, 0);
-
+    describe("should create multi NFT and list Shop", () => {
+        it("list multi NFT", async () => {
             await execute(
-                "ShopNFT",
+                "NFTAdmin",
                 { from: deployer.address, log: true },
-                "listNFT",
-                (
-                    await get("NFT")
-                ).address,
-                0,
-                usdt,
-                1000
+                "createNFTAndListShop",
+                "Chill NFT",
+                "CHILL",
+                tokenURI,
+                [40, 41],
+                [5, 5],
+                parseUnits("100", 6)
             );
-            const ownerNFT = await read("NFT", "ownerOf", 0);
-            expect(ownerNFT).to.be.equal((await get("ShopNFT")).address);
+
+            const countNFT = await nft.getTokenIdCounter();
+            expect(countNFT).to.be.equal(10);
+
+            for (let tokenId = 0; tokenId < countNFT; tokenId++) {
+                try {
+                    // Lấy địa chỉ owner của NFT
+                    const owner = await nft.ownerOf(tokenId);
+
+                    // Lấy tokenURI
+                    const tokenURI = await nft.tokenURI(tokenId);
+                    console.log(`NFT #${tokenId}`);
+                    console.log(`Owner: ${owner}`);
+                    console.log(`Metadata URI: ${tokenURI}`);
+                } catch (error) {
+                    console.log(`Error retrieving data for NFT #${tokenId}:`, error);
+                }
+            }
         });
     });
 });

@@ -6,21 +6,14 @@ const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const { deploy, diamond, read, execute } = deployments;
     const { deployer, deployer2 } = await getNamedAccounts();
 
-    await deploy("ShopNFT", {
-        contract: "ShopNFT",
+    await deploy("USDT", {
+        contract: "ERC20Mintable",
         from: deployer,
         log: true,
-        proxy: {
-            owner: deployer,
-            execute: {
-                init: {
-                    methodName: "initialize",
-                    args: [deployer],
-                },
-            },
-        },
+        args: ["Tether USD", "USDT", 6],
+        skipIfAlreadyDeployed: true,
     });
 };
 
-deploy.tags = ["A"];
+deploy.tags = ["USDT"];
 export default deploy;
