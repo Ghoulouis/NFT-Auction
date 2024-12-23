@@ -1,4 +1,3 @@
-import { NFT } from "./../typechain-types/contracts/NFT";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import { expect } from "chai";
 import { NFT, NFT__factory, NFTAdmin, NFTAdmin__factory, ShopNFT, ShopNFT__factory } from "../typechain-types";
@@ -46,36 +45,30 @@ describe("Testing", () => {
     });
 
     describe("should create multi NFT and list Shop", () => {
-        it("list multi NFT", async () => {
-            await execute(
-                "NFTAdmin",
-                { from: deployer.address, log: true },
-                "createNFTAndListShop",
-                "Chill NFT",
-                "CHILL",
-                tokenURI,
-                [40, 41],
-                [5, 5],
-                parseUnits("100", 6)
-            );
+        describe("list multi NFT", () => {
+            beforeEach(async () => {
+                await execute(
+                    "NFTAdmin",
+                    { from: deployer.address, log: true },
+                    "createNFTAndListShop",
+                    "Chill NFT",
+                    "CHILL",
+                    tokenURI,
+                    [40, 41],
+                    [5, 5],
+                    parseUnits("100", 6)
+                );
+            });
 
-            const countNFT = await nft.getTokenIdCounter();
-            expect(countNFT).to.be.equal(10);
+            it("should create NFT", async () => {
+                const countNFT = await nft.getTokenIdCounter();
+                expect(countNFT).to.be.equal(10);
+            });
 
-            for (let tokenId = 0; tokenId < countNFT; tokenId++) {
-                try {
-                    // Lấy địa chỉ owner của NFT
-                    const owner = await nft.ownerOf(tokenId);
-
-                    // Lấy tokenURI
-                    const tokenURI = await nft.tokenURI(tokenId);
-                    console.log(`NFT #${tokenId}`);
-                    console.log(`Owner: ${owner}`);
-                    console.log(`Metadata URI: ${tokenURI}`);
-                } catch (error) {
-                    console.log(`Error retrieving data for NFT #${tokenId}:`, error);
-                }
-            }
+            it("should list NFT in Shop", async () => {
+                const counterInShop = await shop.listingCounter();
+                expect(counterInShop).to.be.equal(10);
+            });
         });
     });
 });
