@@ -38,7 +38,6 @@ contract NFTAuction {
         require(_endTime > _startTime, "Invalid time range");
 
         IERC721(_nftAddress).transferFrom(msg.sender, address(this), _tokenId);
-
         auctions[auctionCount] = Auction({
             seller: msg.sender,
             nftAddress: _nftAddress,

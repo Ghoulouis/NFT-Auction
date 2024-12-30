@@ -1,3 +1,4 @@
+import { Address } from "./../typechain-types/@openzeppelin/contracts/utils/Address";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import { expect } from "chai";
 import {
@@ -7,6 +8,8 @@ import {
     NFT__factory,
     NFTAdmin,
     NFTAdmin__factory,
+    NFTAuction,
+    NFTAuction__factory,
     ShopNFT,
     ShopNFT__factory,
 } from "../typechain-types";
@@ -32,6 +35,7 @@ describe("Testing", () => {
 
     let usdt: ERC20Mintable;
 
+    let auction: NFTAuction;
     before(async () => {
         await deployments.fixture();
         snapshot = await takeSnapshot();
@@ -54,6 +58,9 @@ describe("Testing", () => {
 
         const usdtDeploymeny = await get("USDT");
         usdt = ERC20Mintable__factory.connect(usdtDeploymeny.address, deployer);
+
+        const auctionDeployment = await get("NFTAuction");
+        auction = NFTAuction__factory.connect(auctionDeployment.address, deployer);
     });
 
     describe("should create multi NFT and list Shop", () => {
@@ -105,13 +112,80 @@ describe("Testing", () => {
             const countNFT = await nft.getTokenIdCounter();
             expect(countNFT).to.be.equal(10);
             const nft_buy = await shop.listings(1);
-            console.log("nft_buy", nft_buy);
+
             await usdt.mint(alice.address, parseUnits("100", 6));
             await usdt.connect(alice).approve(await shop.getAddress(), parseUnits("100", 6));
             await shop.connect(alice).buyNFT(nft_buy[1]);
             const info_nft = await nft.ownerOf(1);
             //  console.log("info_nft", info_nft);
             expect(info_nft).to.be.equal(alice.address);
+        });
+    });
+
+    describe(" Auction test ", () => {
+        beforeEach(async () => {
+            await execute(
+                "NFTAdmin",
+                { from: deployer.address, log: true },
+                "createNFTAndListShop",
+                "Chill NFT",
+                "CHILL",
+                tokenURI,
+                [40, 41],
+                [5, 5],
+                parseUnits("100", 6)
+            );
+            const countNFT = await nft.getTokenIdCounter();
+            expect(countNFT).to.be.equal(10);
+            const nft_buy = await shop.listings(1);
+            await usdt.mint(alice.address, parseUnits("100", 6));
+            await usdt.connect(alice).approve(await shop.getAddress(), parseUnits("100", 6));
+            await shop.connect(alice).buyNFT(nft_buy[1]);
+            const info_nft = await nft.ownerOf(1);
+            expect(info_nft).to.be.equal(alice.address);
+        });
+
+        it("should create auction", async () => {
+            const owner = await nft.ownerOf(1);
+            expect(owner).to.be.equal(alice.address);
+            await nft.connect(alice).approve(await auction.getAddress(), 1);
+            await auction
+                .connect(alice)
+                .createAuction(
+                    await nft.getAddress(),
+                    1,
+                    await usdt.getAddress(),
+                    parseUnits("100", 6),
+                    parseUnits("1000", 6),
+                    Math.round(Date.now() / 1000),
+                    Math.round(Date.now() / 1000) + 3600
+                );
+            const auctionInfo = await auction.auctions(0);
+            expect(auctionInfo[0]).to.be.equal(alice.address);
+        });
+
+        describe("should bid auction", () => {
+            let id;
+
+            beforeEach(async () => {
+                const owner = await nft.ownerOf(1);
+                expect(owner).to.be.equal(alice.address);
+                await nft.connect(alice).approve(await auction.getAddress(), 1);
+                await auction
+                    .connect(alice)
+                    .createAuction(
+                        await nft.getAddress(),
+                        1,
+                        await usdt.getAddress(),
+                        parseUnits("100", 6),
+                        parseUnits("1000", 6),
+                        Math.round(Date.now() / 1000),
+                        Math.round(Date.now() / 1000) + 3600
+                    );
+                const auctionInfo = await auction.auctions(0);
+                expect(auctionInfo[0]).to.be.equal(alice.address);
+                id = 0;
+            });
         });
     });
 });
