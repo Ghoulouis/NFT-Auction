@@ -63,6 +63,14 @@ const config: HardhatUserConfig = {
             accounts: accounts,
             tags: ["staging"],
         },
+        eth_sepolia: {
+            url: process.env.RPC_ETH_SEPOLIA,
+            chainId: 11155111,
+            live: true,
+            tags: ["eth-sepolia"],
+            deploy: ["deploy/eth_sepolia"],
+            accounts,
+        },
         sapphire_testnet: {
             url: "https://testnet.sapphire.oasis.dev",
             chainId: 0x5aff,
